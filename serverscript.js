@@ -1,62 +1,26 @@
-angular.module('PortalApp')
+// Set up table structure
+function init(){
+	var queryResult = db.Execute('SELECT TOP 1 * FROM sampleTable');
+  	var row = JSON.parse(queryResult);
+  	
+  	if(row.length>0 && typeof row[0].Error != 'undefined'){
+    	db.Execute('CREATE TABLE sampleTable(id INTEGER PRIMARY KEY IDENTITY(1,1), userId nvarchar(50), value nvarchar(50));');
+      	return '{"result":"created table"}';
+    }else
+  		return '{"result":"table exists"}';
+}
 
-.controller('widgetCtrl', ['$scope','$http','$q', function ($scope, $http, $q) {
-  
-  $scope.portalHelpers.config={
-    "title":"Aneville Portal SDK Test 2",
-    "icon":"icon-club"
-  };
-  
-  // Initialize input variable
-  $scope.insertValue = {value:""};
+// Retreive data from the database
+function getData(){
+	return db.Execute('SELECT * FROM sampleTable');
+}
 
-  // Show loading message in the first column
-  $scope.portalHelpers.showView('loading.html',1);
-  
-  // Show loading animation
-  $scope.portalHelpers.toggleLoading(true);	
-  
-  // Ensure table structure is setup
-  $scope.portalHelpers.invokeServerFunction('init').then(function(){
-  	$scope.portalHelpers.invokeServerFunction('getData').then(function(result){
-    	$scope.dbData = result;
-    });
-  });
-  
-  // Get data for the widget
-  $http.get('/ImportantLinks/JSONSource').success(function(data){
-	// Make data available in the scope
-  	$scope.links = data;
-	// Turn off loading animation
-    $scope.portalHelpers.toggleLoading(false);	
-	// Show main view
-    $scope.portalHelpers.showView('main.html',1);
-  });
-  
-  // Insert a value into the database
-  $scope.insertData = function(){
-  	if($scope.insertValue.length>50)
-      alert('value should be less than 50 characters');
-    else{
-      	$scope.portalHelpers.invokeServerFunction('insert',{value:$scope.insertValue.value}).then(function(result){
-        	$scope.dbData = result;
-        });
+// Insert into the database
+function insert(){
+	if(args.Get("value").length>50)
+      return '{"result":"error"}';
+  	else{
+    	db.Execute('INSERT INTO sampleTable VALUES(@currentUser,@value)');
+      	return getData();
     }
-  }
-  
-}])
-// Custom directive example
-.directive('DirectiveName', ['$http', function ($http) {
-    return {
-        link: function (scope, el, attrs) {
-          	
-        }
-    };
-}])
-// Custom filter example
-.filter('FilterName', function () {
-      return function (input, arg1, arg2) {
-		var output = input;
-        return output;
-      }
-});
+}
